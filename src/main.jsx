@@ -1,8 +1,8 @@
 import React from 'react'
-import ReactDOM from 'react-dom/client'
+import { createRoot } from 'react-dom/client'  // ← 這一行改正
 import StockDashboard from './pages/Dashboard'
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <StockDashboard />
   </React.StrictMode>
