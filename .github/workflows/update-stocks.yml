@@ -2,7 +2,7 @@ name: 自動更新股票分析資料
 
 on:
   schedule:
-    - cron: '0 21 * * *'  # 每天 UTC 21:00 = 臺灣時間早上 5:00
+    - cron: '0 21 * * *'  # 每天 UTC 21:00 = 台灣早上 5:00
   workflow_dispatch:
 
 jobs:
@@ -12,13 +12,15 @@ jobs:
     steps:
       - name: 下載他自己的 repo
         uses: actions/checkout@v3
+        with:
+          persist-credentials: false
 
       - name: 安裝 Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: 安裝相關契約
+      - name: 安裝相關套件
         run: |
           pip install yfinance pandas
 
@@ -28,10 +30,10 @@ jobs:
 
       - name: 提交更新的 JSON
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
           git add public/data/stocks.json
-          git commit -m "自動更新 stocks.json"
-          git push
+          git commit -m "自動更新 stocks.json" || echo "No changes to commit"
+          git push origin HEAD:${{ github.ref_name }}
         env:
-          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
