@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ResponsiveContainer } from "recharts";
 import { Modal } from "antd";
 
-const API_URL = "/data/stock_analysis.json";
+const API_URL = "/data/stocks.json";  // ✅ 改這裡，加s！
 
 export default function Dashboard() {
   const [data, setData] = useState([]);
