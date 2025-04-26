@@ -43,6 +43,7 @@ for ticker in tickers:
             "成交量變化(7/30)": ratio,
             "建議買進機率(%)": score,
             "建議賣出機率(%)": 100 - score
+             "AI分析語錄": f"{ticker} 目前為 {trend} 趨勢，屬於模擬語錄，稍後將由 GPT 替換"
         })
     except Exception as e:
         print(f"錯誤：{ticker} 無法處理 → {e}")
