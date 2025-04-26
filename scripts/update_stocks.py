@@ -5,7 +5,7 @@ import pandas as pd
 import json
 from datetime import datetime, timedelta
 
-# 股票清單（可以自己擴充）
+# 股票清單（50大市值美股）
 tickers = [
     'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA',
     'BRK-B', 'META', 'TSLA', 'UNH', 'LLY',
@@ -19,11 +19,11 @@ tickers = [
     'UNP', 'SBUX', 'PM', 'CAT', 'GS'
 ]
 
-# 設定時間範圍
+# 抓取一年內資料
 end_date = datetime.today()
 start_date = end_date - timedelta(days=365)
 
-# 儲存結果
+# 存分析結果
 analysis = []
 
 for ticker in tickers:
@@ -33,6 +33,7 @@ for ticker in tickers:
         if df.empty or 'Volume' not in df.columns:
             continue
 
+        # 計算各種均線
         df['20MA'] = df['Close'].rolling(window=20).mean()
         df['60MA'] = df['Close'].rolling(window=60).mean()
         df['7MA_Volume'] = df['Volume'].rolling(window=7).mean()
@@ -44,7 +45,7 @@ for ticker in tickers:
         latest_7MA_vol = df['7MA_Volume'].iloc[-1]
         latest_30MA_vol = df['30MA_Volume'].iloc[-1]
 
-        # 價格趨勢判斷
+        # 價格趨勢
         if latest_20MA > latest_60MA:
             price_trend = "上升"
         elif latest_20MA < latest_60MA:
@@ -52,13 +53,13 @@ for ticker in tickers:
         else:
             price_trend = "盤整"
 
-        # 成交量趨勢判斷
+        # 成交量趨勢
         if latest_7MA_vol > latest_30MA_vol:
             volume_trend = "量增"
         else:
             volume_trend = "量縮"
 
-        # 均線交叉判斷
+        # 均線交叉
         if (df['20MA'].iloc[-2] < df['60MA'].iloc[-2]) and (latest_20MA > latest_60MA):
             cross = "黃金交叉"
         elif (df['20MA'].iloc[-2] > df['60MA'].iloc[-2]) and (latest_20MA < latest_60MA):
@@ -96,10 +97,10 @@ for ticker in tickers:
             "線圖資料": chart_data
         })
     except Exception as e:
-        print(f"錯誤：{ticker} 處理失敗 → {e}")
+        print(f"⚠️ 錯誤：{ticker} 無法處理 → {e}")
 
-# 儲存成 JSON
+# 輸出成 JSON
 with open('public/data/stocks.json', 'w', encoding='utf-8') as f:
     json.dump(analysis, f, ensure_ascii=False, indent=2)
 
-print("✅ stocks.json 更新完成！")
+print("✅ stocks.json 產生完成！")
