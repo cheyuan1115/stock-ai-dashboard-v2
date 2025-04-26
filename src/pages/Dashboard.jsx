@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, BarChart, Bar } from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar } from "recharts";
 
 const API_URL = "/data/stocks.json";
 
@@ -8,7 +8,9 @@ export default function StockDashboard() {
   const [selected, setSelected] = useState(null);
 
   useEffect(() => {
-    fetch(API_URL).then(res => res.json()).then(setData);
+    fetch(API_URL)
+      .then(res => res.json())
+      .then(json => setData(json));
   }, []);
 
   const categories = {
@@ -43,21 +45,21 @@ export default function StockDashboard() {
           <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>{selected.股票代碼} 詳細分析</h2>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
             <div style={{ backgroundColor: '#1e293b', padding: '1rem', borderRadius: '8px', flex: 1, minWidth: '300px' }}>
-              <h3>AI 分析語錄</h3>
+              <h3>建議與趨勢</h3>
               <p>
-                {selected.趨勢分類 === "上升" && "該股處於多頭趨勢，20MA 高於 60MA，成交量溫和放大。"}
-                {selected.趨勢分類 === "下降" && "該股目前處於空頭趨勢，均線下彎且量能不足。"}
-                {selected.趨勢分類 === "不明" && "目前趨勢尚未明朗，建議觀望。"}
+                {selected.趨勢分類}趨勢，
+                近30日漲跌幅：{selected["近30日漲跌幅(%)"]}%
+                ，成交量變化比：{selected["成交量變化(7/30)"]}
                 <br />
-                近 30 日漲跌幅：{selected["近30日漲跌幅(%)"]}%、成交量變化比：{selected["成交量變化(7/30)"]}
-                <br />
-                建議買進機率：{selected["建議買進機率(%)"]}%、賣出機率：{selected["建議賣出機率(%)"]}%
+                建議買進機率：{selected["建議買進機率(%)"]}%
+                ，賣出機率：{selected["建議賣出機率(%)"]}%
               </p>
             </div>
-            <div style={{ backgroundColor: '#1e293b', padding: '1rem', borderRadius: '8px' }}>
+            <div style={{ backgroundColor: '#1e293b', padding: '1rem', borderRadius: '8px', flex: 1, minWidth: '300px' }}>
+              <h3>趨勢強度圖</h3>
               <BarChart width={300} height={200} data={[selected]}>
-                <XAxis dataKey="股票代碼" />
-                <YAxis />
+                <XAxis dataKey="股票代碼" stroke="#ccc" />
+                <YAxis stroke="#ccc" />
                 <Tooltip />
                 <Bar dataKey="建議買進機率(%)" fill="#22c55e" />
                 <Bar dataKey="建議賣出機率(%)" fill="#ef4444" />
