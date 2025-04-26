@@ -1,9 +1,9 @@
-import React from 'react'
-import { createRoot } from 'react-dom/client'  // ← 這一行改正
-import StockDashboard from './pages/Dashboard'
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import Dashboard from './Dashboard';  // 正確路徑
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <StockDashboard />
+    <Dashboard />
   </React.StrictMode>
-)
+);
