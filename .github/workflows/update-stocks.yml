@@ -2,7 +2,7 @@ name: 自動更新股票分析資料
 
 on:
   schedule:
-    - cron: '0 21 * * *'  # 每天 UTC 21:00 = 台灣早上 5:00
+    - cron: '0 21 * * *'  # 每天 UTC 21:00 = 台灣時間早上 5:00
   workflow_dispatch:
 
 jobs:
@@ -34,6 +34,4 @@ jobs:
           git config --global user.email "github-actions@github.com"
           git add public/data/stocks.json
           git commit -m "自動更新 stocks.json" || echo "No changes to commit"
-          git push origin HEAD:${{ github.ref_name }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
