@@ -2,33 +2,34 @@ name: Update Stock Analysis
 
 on:
   schedule:
-    - cron: '0 21 * * *'  # 每天台灣時間 5:00AM (因為 GitHub Actions 是 UTC 時區，要減8小時)
-  workflow_dispatch:  # 也可以手動按下去執行
+    - cron: '0 21 * * *'  # 每天台灣早上 5:00 自動執行
+  workflow_dispatch:  # 也可以手動點擊 Run Workflow 觸發
 
 jobs:
   update:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
 
-      - name: Install dependencies
-        run: |
-          pip install yfinance pandas
+    - name: Install dependencies
+      run: |
+        pip install yfinance pandas
 
-      - name: Run update script
-        run: |
-          python scripts/update_stocks.py
+    - name: Run update script
+      run: |
+        python scripts/update_stocks.py
 
-      - name: Commit and Push changes
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add public/data/stock_analysis.json
-          git commit -m "🆙 自動更新 stock_analysis.json" || echo "No changes to commit"
-          git push
+    - name: Commit and Push changes
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add public/data/stocks.json
+        git commit -m "每日自動更新 stocks.json" || echo "No changes to commit"
+        git push
