@@ -2,6 +2,7 @@ import yfinance as yf
 import pandas as pd
 import json
 from datetime import datetime, timedelta
+import numpy as np
 
 # 股票清單
 tickers = ["AAPL", "MSFT", "TSLA", "GOOGL", "AMZN", "NVDA", "META", "BRK-B", "JPM", "V"]
@@ -31,13 +32,14 @@ for ticker in tickers:
             trend = "不明"
             score = 50
 
-        # 計算趨勢強度
-        trend_strength = round(abs(df["20MA"].iloc[-1] - df["60MA"].iloc[-1]), 2)
+        # 趨勢強度（防止 NaN）
+        trend_strength = abs(df["20MA"].iloc[-1] - df["60MA"].iloc[-1])
+        trend_strength = 0 if pd.isna(trend_strength) else round(trend_strength, 2)
 
-        # 計算近30日漲跌幅
+        # 近30日漲跌幅
         pct_change = round((df["Close"].iloc[-1] - df["Close"].iloc[0]) / df["Close"].iloc[0] * 100, 2)
 
-        # 成交量變化比率（7日平均/30日平均）
+        # 成交量變化比（7日平均 / 30日平均）
         volume_7 = df["Volume"].tail(7).mean()
         volume_30 = df["Volume"].tail(30).mean()
         volume_ratio = round(volume_7 / volume_30, 2) if volume_30 != 0 else 0
@@ -55,14 +57,8 @@ for ticker in tickers:
     except Exception as e:
         print(f"錯誤：{ticker} 無法處理 → {e}")
 
-# 加上最後更新時間（可選）
-output = {
-    "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-    "stocks": results
-}
-
-# 輸出成 stocks.json
+# 輸出 stocks.json
 with open("public/data/stocks.json", "w", encoding="utf-8") as f:
-    json.dump(output["stocks"], f, ensure_ascii=False, indent=2)
+    json.dump(results, f, ensure_ascii=False, indent=2)
 
-print("✅ stocks.json 產生完成")
+print("✅ stocks.json 產生完成！")
