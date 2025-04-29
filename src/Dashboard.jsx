@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ResponsiveContainer } from "recharts";
 import { Modal } from "antd";
 
-const API_URL = "/data/stocks.json";  // ✅ 改這裡，加s！
+const API_URL = "/data/stocks.json";  // ✅ 注意你的 stocks.json 路徑
 
 export default function Dashboard() {
   const [data, setData] = useState([]);
@@ -39,6 +38,7 @@ export default function Dashboard() {
 
   return (
     <div style={{ padding: "10px" }}>
+      {/* 搜尋欄 */}
       <input
         type="text"
         value={search}
@@ -56,6 +56,7 @@ export default function Dashboard() {
         }}
       />
 
+      {/* 股票列表 */}
       <div style={{ overflowX: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
@@ -85,7 +86,7 @@ export default function Dashboard() {
         </table>
       </div>
 
-      {/* Modal彈窗 */}
+      {/* Modal 彈窗 */}
       <Modal
         open={isModalOpen}
         onCancel={closeModal}
@@ -95,27 +96,22 @@ export default function Dashboard() {
         bodyStyle={{ background: "#0d1117" }}
       >
         {selectedStock && (
-          <div style={{ padding: "10px" }}>
+          <div style={{ padding: "10px", textAlign: "center" }}>
             <h2 style={{ color: "white" }}>{selectedStock.股票} 股價走勢圖</h2>
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart
-                data={selectedStock.線圖資料.日期.map((date, idx) => ({
-                  日期: date,
-                  收盤價: selectedStock.線圖資料.收盤價[idx],
-                  二十日均線: selectedStock.線圖資料["20MA"][idx],
-                  六十日均線: selectedStock.線圖資料["60MA"][idx],
-                }))}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="日期" stroke="white" />
-                <YAxis stroke="white" />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="收盤價" stroke="skyblue" dot={false} strokeWidth={2} />
-                <Line type="monotone" dataKey="二十日均線" stroke="orange" dot={false} strokeWidth={2} />
-                <Line type="monotone" dataKey="六十日均線" stroke="lightgreen" dot={false} strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
+
+            {/* 顯示charts下的圖片 */}
+            <img
+              src={`/charts/${selectedStock.股票}.png`}
+              alt={`${selectedStock.股票} 股價線圖`}
+              style={{ width: "90%", maxHeight: "500px", objectFit: "contain", marginBottom: "20px" }}
+            />
+
+            {/* 顯示分析趨勢文字 */}
+            <div style={{ color: "white", fontSize: "18px" }}>
+              <p><b>價格趨勢：</b>{selectedStock.價格趨勢}</p>
+              <p><b>成交量趨勢：</b>{selectedStock.成交量趨勢}</p>
+              <p><b>綜合建議：</b>{selectedStock.綜合建議}</p>
+            </div>
           </div>
         )}
       </Modal>
