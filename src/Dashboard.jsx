@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Modal } from "antd";
 
-const API_URL = "/data/stocks.json";  // ✅ 注意你的 stocks.json 路徑
+const API_URL = "/data/stock_analysis.json";  // ✅ 注意你的 stocks.json 路徑
 
 export default function Dashboard() {
   const [data, setData] = useState([]);
