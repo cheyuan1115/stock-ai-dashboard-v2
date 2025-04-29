@@ -1,138 +1,102 @@
-// Dashboard.jsx (v3 乾淨版)
 import { useEffect, useState } from "react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  CartesianGrid,
-  ResponsiveContainer,
-} from "recharts";
 import { Modal } from "antd";
 
-const API_URL = "/data/stock_analysis.json";
+const API_URL = "/data/stock_analysis.json";  // ✅ 指向新的資料
 
 export default function Dashboard() {
   const [data, setData] = useState([]);
-  const [selected, setSelected] = useState(null);
+  const [filteredData, setFilteredData] = useState([]);
+  const [search, setSearch] = useState("");
+  const [selectedStock, setSelectedStock] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     fetch(API_URL)
-      .then((res) => res.json())
-      .then((json) => setData(json));
+      .then(res => res.json())
+      .then(json => {
+        setData(json);
+        setFilteredData(json);
+      });
   }, []);
 
+  const handleSearch = (e) => {
+    const keyword = e.target.value.toUpperCase();
+    setSearch(keyword);
+    const filtered = data.filter(stock => stock.股票.toUpperCase().includes(keyword));
+    setFilteredData(filtered);
+  };
+
   const openModal = (stock) => {
-    setSelected(stock);
+    setSelectedStock(stock);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setSelected(null);
+    setSelectedStock(null);
   };
-
-  const categories = {
-    上升: [],
-    下降: [],
-    不明: [],
-  };
-
-  data.forEach((d) => {
-    categories[d.趨勢]?.push(d);
-  });
 
   return (
-    <div className="p-6 text-white bg-[#0d1117] min-h-screen">
-      <h1 className="text-3xl font-bold mb-6">AI 股票趨勢分析排行榜</h1>
+    <div style={{ padding: "10px" }}>
+      <input
+        type="text"
+        value={search}
+        onChange={handleSearch}
+        placeholder="🔎 搜尋股票代碼..."
+        style={{
+          padding: "10px",
+          marginBottom: "20px",
+          width: "300px",
+          fontSize: "16px",
+          borderRadius: "8px",
+          border: "1px solid #555",
+          backgroundColor: "#161b22",
+          color: "white"
+        }}
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {Object.entries(categories).map(([title, stocks]) => (
-          <div key={title} className="bg-[#161b22] p-4 rounded-xl shadow">
-            <h2 className="text-xl font-semibold mb-2">{title}趨勢</h2>
-            {stocks.map((s, i) => (
-              <div
-                key={i}
-                className="flex justify-between py-1 hover:underline cursor-pointer"
-                onClick={() => openModal(s)}
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ background: "#161b22", color: "white" }}>
+              <th style={{ padding: "10px", border: "1px solid #30363d" }}>股票代碼</th>
+              <th style={{ padding: "10px", border: "1px solid #30363d" }}>最新收盤價</th>
+              <th style={{ padding: "10px", border: "1px solid #30363d" }}>趨勢</th>
+              <th style={{ padding: "10px", border: "1px solid #30363d" }}>均線交叉</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredData.map((stock, idx) => (
+              <tr
+                key={idx}
+                onClick={() => openModal(stock)}
+                style={{ cursor: "pointer", background: idx % 2 === 0 ? "#0d1117" : "#161b22", color: "white" }}
               >
-                <span className="text-blue-400">{s.股票}</span>
-                <span>{s.建議買進機率 ?? "--"}%</span>
-              </div>
+                <td style={{ padding: "10px", border: "1px solid #21262d" }}>{stock.股票}</td>
+                <td style={{ padding: "10px", border: "1px solid #21262d" }}>{stock.最新收盤價}</td>
+                <td style={{ padding: "10px", border: "1px solid #21262d" }}>{stock.趨勢}</td>
+                <td style={{ padding: "10px", border: "1px solid #21262d" }}>{stock.均線交叉}</td>
+              </tr>
             ))}
-          </div>
-        ))}
+          </tbody>
+        </table>
       </div>
 
+      {/* Modal彈窗 */}
       <Modal
         open={isModalOpen}
         onCancel={closeModal}
         footer={null}
-        width="90%"
+        width="80%"
         centered
-        bodyStyle={{ background: "#0d1117" }}
+        bodyStyle={{ background: "#0d1117", color: "white" }}
       >
-        {selected && (
-          <div>
-            <h2 className="text-xl font-bold text-white mb-4">
-              {selected.股票} 詳細分析
-            </h2>
-
-            {/* 趨勢說明 */}
-            <div className="bg-[#161b22] p-4 rounded-xl mb-6">
-              <h3 className="font-semibold mb-2 text-white">建議與趨勢</h3>
-              <p className="text-white whitespace-pre-line">
-                {selected.趨勢}，\n
-                近30日漲跌幅：{selected.漲跌幅 ?? "--"}%\n
-                成交量變化比：{selected.量能比 ?? "--"}\n
-                建議買進機率：{selected.建議買進機率 ?? "--"}%\n
-                建議賣出機率：{selected.建議賣出機率 ?? "--"}%
-              </p>
-            </div>
-
-            {/* 股價圖表 */}
-            {selected.線圖資料 && (
-              <div className="bg-[#161b22] p-4 rounded-xl">
-                <h3 className="font-semibold mb-2 text-white">股價線圖</h3>
-                <ResponsiveContainer width="100%" height={400}>
-                  <LineChart
-                    data={selected.線圖資料.日期.map((d, i) => ({
-                      日期: d,
-                      收盤價: selected.線圖資料.收盤價[i],
-                      MA20: selected.線圖資料["20MA"][i],
-                      MA60: selected.線圖資料["60MA"][i],
-                    }))}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-                    <XAxis dataKey="日期" stroke="white" />
-                    <YAxis stroke="white" />
-                    <Tooltip />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="收盤價"
-                      stroke="skyblue"
-                      dot={false}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="MA20"
-                      stroke="orange"
-                      dot={false}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="MA60"
-                      stroke="lightgreen"
-                      dot={false}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            )}
+        {selectedStock && (
+          <div style={{ padding: "10px" }}>
+            <h2>{selectedStock.股票} 詳細資料</h2>
+            <p>📈 最新收盤價：{selectedStock.最新收盤價}</p>
+            <p>📊 趨勢分析：{selectedStock.趨勢}</p>
+            <p>🔄 均線交叉情況：{selectedStock.均線交叉}</p>
           </div>
         )}
       </Modal>
