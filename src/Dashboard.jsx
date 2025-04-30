@@ -1,105 +1,66 @@
+// stock-dashboard-v3 (新版本：深色主題＋分析圖表頁面)
+
 import { useEffect, useState } from "react";
-import { Modal } from "antd";
+import { useSearchParams } from "react-router-dom";
+import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ResponsiveContainer, BarChart, Bar } from "recharts";
 
-const API_URL = "/data/stock_analysis.json";  // ✅ 指向新的資料
+const API_URL = "/data/stock_analysis.json";
+const CHART_BASE = "/charts/";
 
-export default function Dashboard() {
+export default function StockDashboard() {
   const [data, setData] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
-  const [search, setSearch] = useState("");
-  const [selectedStock, setSelectedStock] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selected, setSelected] = useState(null);
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     fetch(API_URL)
       .then(res => res.json())
       .then(json => {
         setData(json);
-        setFilteredData(json);
+        const target = searchParams.get("symbol");
+        if (target) {
+          const found = json.find((d) => d["股票"] === target);
+          if (found) setSelected(found);
+        }
       });
-  }, []);
+  }, [searchParams]);
 
-  const handleSearch = (e) => {
-    const keyword = e.target.value.toUpperCase();
-    setSearch(keyword);
-    const filtered = data.filter(stock => stock.股票.toUpperCase().includes(keyword));
-    setFilteredData(filtered);
-  };
-
-  const openModal = (stock) => {
-    setSelectedStock(stock);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedStock(null);
-  };
+  if (!selected) {
+    return (
+      <div className="p-4 text-white bg-[#0d1117] min-h-screen">
+        <h1 className="text-2xl font-bold mb-4">AI 股票趨勢排行榜</h1>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {data.map((stock) => (
+            <div
+              key={stock["股票"]}
+              className="p-4 bg-[#161b22] rounded-xl cursor-pointer hover:bg-[#21262d]"
+              onClick={() => (window.location.href = `?symbol=${stock["股票"]}`)}
+            >
+              <div className="text-lg font-semibold">{stock["股票"]}</div>
+              <div className="text-sm text-gray-400">{stock["趨勢"]}</div>
+              <div className="text-sm text-gray-400">收盤價：{stock["最新收盤價"]}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ padding: "10px" }}>
-      <input
-        type="text"
-        value={search}
-        onChange={handleSearch}
-        placeholder="🔎 搜尋股票代碼..."
-        style={{
-          padding: "10px",
-          marginBottom: "20px",
-          width: "300px",
-          fontSize: "16px",
-          borderRadius: "8px",
-          border: "1px solid #555",
-          backgroundColor: "#161b22",
-          color: "white"
-        }}
-      />
+    <div className="p-4 text-white bg-[#0d1117] min-h-screen">
+      <button onClick={() => setSelected(null)} className="mb-4 text-blue-400 hover:underline">← 返回清單</button>
+      <h1 className="text-2xl font-bold mb-2">{selected["股票"]} 詳細分析</h1>
+      <p className="text-lg mb-4">綜合建議：{selected["綜合建議"]}</p>
 
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ background: "#161b22", color: "white" }}>
-              <th style={{ padding: "10px", border: "1px solid #30363d" }}>股票代碼</th>
-              <th style={{ padding: "10px", border: "1px solid #30363d" }}>最新收盤價</th>
-              <th style={{ padding: "10px", border: "1px solid #30363d" }}>趨勢</th>
-              <th style={{ padding: "10px", border: "1px solid #30363d" }}>均線交叉</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.map((stock, idx) => (
-              <tr
-                key={idx}
-                onClick={() => openModal(stock)}
-                style={{ cursor: "pointer", background: idx % 2 === 0 ? "#0d1117" : "#161b22", color: "white" }}
-              >
-                <td style={{ padding: "10px", border: "1px solid #21262d" }}>{stock.股票}</td>
-                <td style={{ padding: "10px", border: "1px solid #21262d" }}>{stock.最新收盤價}</td>
-                <td style={{ padding: "10px", border: "1px solid #21262d" }}>{stock.趨勢}</td>
-                <td style={{ padding: "10px", border: "1px solid #21262d" }}>{stock.均線交叉}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="mb-6">
+        <img
+          src={`${CHART_BASE}${selected["股票"]}.png`}
+          alt={`${selected["股票"]} 線圖`}
+          className="rounded-xl border border-gray-600 w-full"
+        />
       </div>
 
-      {/* Modal彈窗 */}
-      <Modal
-        open={isModalOpen}
-        onCancel={closeModal}
-        footer={null}
-        width="80%"
-        centered
-        bodyStyle={{ background: "#0d1117", color: "white" }}
-      >
-        {selectedStock && (
-          <div style={{ padding: "10px" }}>
-            <h2>{selectedStock.股票} 詳細資料</h2>
-            <p>📈 最新收盤價：{selectedStock.最新收盤價}</p>
-            <p>📊 趨勢分析：{selectedStock.趨勢}</p>
-            <p>🔄 均線交叉情況：{selectedStock.均線交叉}</p>
-          </div>
-        )}
-      </Modal>
+      <div className="text-sm text-gray-400">資料來源：Yahoo Finance / AI 分析每日更新</div>
     </div>
   );
 }
