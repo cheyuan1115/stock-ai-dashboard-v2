@@ -32,7 +32,7 @@ export default function StockPage() {
       <h1 className="text-3xl font-bold mb-2">{stock.股票} 分析圖表</h1>
       <p className="mb-4">綜合建議：{stock.綜合建議 ?? "--"}</p>
       <img
-        src={`${CHART_PATH}${symbol}.png`}
+        src={`${CHART_PATH}${symbol}.png?v=${Date.now()}`}
         alt={`${symbol} 線圖`}
         className="w-full max-w-3xl border rounded-xl mb-6"
       />
